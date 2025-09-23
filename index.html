@@ -76,6 +76,16 @@
       }
       main { padding: 16px; }
       .add-row { display: flex; gap: 10px; margin-bottom: 16px; }
+      .category-row { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; }
+      label { color: var(--muted); font-size: 14px; }
+      select {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #0f1626;
+        color: var(--text);
+        outline: none;
+      }
       input[type="text"] {
         flex: 1;
         padding: 12px 14px;
@@ -110,6 +120,18 @@
         border-radius: 12px;
       }
       .item .meta { color: var(--muted); font-size: 12px; }
+      .badge-cat {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        font-size: 12px;
+        border-radius: 999px;
+        background: rgba(79,140,255,0.12);
+        color: #a9c5ff;
+        border: 1px solid rgba(79,140,255,0.35);
+      }
+      .badge-cat svg { opacity: 0.9; }
       .actions { display: flex; gap: 8px; }
       .empty { color: var(--muted); text-align: center; padding: 24px; border: 1px dashed var(--border); border-radius: 12px; background: rgba(15,22,38,0.6);}      
       footer { padding: 14px 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
@@ -134,6 +156,11 @@
       <main>
         <!-- Add Items -->
         <section id="view-add" class="view">
+          <div class="category-row">
+            <label for="category-select">Category</label>
+            <select id="category-select" aria-label="Category"></select>
+            <button id="add-cat-btn" class="ghost" aria-label="Add category">+ Add Category</button>
+          </div>
           <div class="add-row">
             <input id="item-input" type="text" placeholder="Add a new item… (e.g., Buy milk)" aria-label="Item text" />
             <button id="add-btn" class="primary" aria-label="Add item">Add</button>
@@ -169,7 +196,8 @@
     <script>
       // Simple shared list with localStorage persistence and manual share/import
       // Data model: { id, text, status: 'pending'|'completed', createdAt }
-      const STORAGE_KEY = 'family-shared-list:v1';
+      const STORAGE_KEY = 'family-shared-list:v2';
+      const CATEGORY_KEY = 'family-shared-list:categories';
 
       /**
        * Utilities
@@ -194,11 +222,45 @@
       function getItems() { return loadState(); }
       function setItems(items) { saveState(items); render(); }
 
+      // Categories persistence
+      function loadCategories() {
+        try {
+          const raw = localStorage.getItem(CATEGORY_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed)) return null;
+          return parsed;
+        } catch { return null; }
+      }
+      function saveCategories(cats) {
+        localStorage.setItem(CATEGORY_KEY, JSON.stringify(cats));
+      }
+      function ensureDefaultCategories() {
+        const existing = loadCategories();
+        if (existing && existing.length) return existing;
+        const defaults = ['Visa', 'Car', 'New House Work'];
+        saveCategories(defaults);
+        return defaults;
+      }
+      function populateCategorySelect() {
+        const select = $('#category-select');
+        const cats = ensureDefaultCategories();
+        select.innerHTML = '';
+        for (const c of cats) {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c;
+          select.appendChild(opt);
+        }
+      }
+
       function addItem(text) {
         const trimmed = (text || '').trim();
         if (!trimmed) return;
+        const category = ($('#category-select')?.value || '').trim();
+        const catVal = category || 'Uncategorized';
         const items = getItems();
-        items.unshift({ id: uid(), text: trimmed, status: 'pending', createdAt: now() });
+        items.unshift({ id: uid(), text: trimmed, status: 'pending', createdAt: now(), category: catVal });
         setItems(items);
         $('#item-input').value = '';
         switchTab('pending');
@@ -248,9 +310,17 @@
         el.className = 'item';
         el.setAttribute('role', 'listitem');
         const created = new Date(item.createdAt).toLocaleString();
+        const catBadge = (item.category) ? `
+            <div class="badge-cat" title="${escapeHtml(item.category)}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 7H20" stroke="#a9c5ff" stroke-width="1.6" stroke-linecap="round"/><path d="M6 12H18" stroke="#a9c5ff" stroke-width="1.6" stroke-linecap="round"/><path d="M9 17H15" stroke="#a9c5ff" stroke-width="1.6" stroke-linecap="round"/></svg>
+              <span>${escapeHtml(item.category)}</span>
+            </div>` : '';
         el.innerHTML = `
           <div>
-            <div>${escapeHtml(item.text)}</div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span>${escapeHtml(item.text)}</span>
+              ${catBadge}
+            </div>
             <div class="meta">Added ${created}</div>
           </div>
           <div class="actions">
@@ -305,6 +375,23 @@
       $$('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
       $('#add-btn').addEventListener('click', () => addItem($('#item-input').value));
       $('#item-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') addItem($('#item-input').value); });
+
+      // Category add button
+      $('#add-cat-btn').addEventListener('click', () => {
+        const name = prompt('New category name:');
+        if (!name) return;
+        const trimmed = name.trim();
+        if (!trimmed) return;
+        const cats = ensureDefaultCategories();
+        if (!cats.includes(trimmed)) {
+          cats.push(trimmed);
+          saveCategories(cats);
+          populateCategorySelect();
+          $('#category-select').value = trimmed;
+        } else {
+          $('#category-select').value = trimmed;
+        }
+      });
 
       // Share / Import / Clear
       $('#share-btn').addEventListener('click', () => {
@@ -369,6 +456,7 @@
       })();
 
       // Initial render
+      populateCategorySelect();
       render();
     </script>
   </body>
