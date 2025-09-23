@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Family To-Do List</title>
+    <style>
+      :root {
+        --bg: #0b1220;
+        --card: #121a2b;
+        --muted: #7f8ca3;
+        --text: #e9eef7;
+        --accent: #4f8cff;
+        --accent-2: #22c55e;
+        --danger: #ef4444;
+        --border: #1e2a44;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: radial-gradient(1200px 800px at 20% -10%, #1b2a48 0%, #0b1220 50%, #0b1220 100%);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .app {
+        width: 100%;
+        max-width: 760px;
+        background: rgba(18,26,43,0.8);
+        backdrop-filter: blur(8px);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        overflow: hidden;
+      }
+      header {
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+      .badge { font-weight: 600; color: var(--muted); font-size: 13px; }
+      .tabs {
+        display: flex;
+        gap: 8px;
+        background: #0f1626;
+        padding: 6px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+      }
+      .tab {
+        padding: 8px 12px;
+        border-radius: 8px;
+        color: var(--muted);
+        cursor: pointer;
+        user-select: none;
+        border: 1px solid transparent;
+      }
+      .tab.active {
+        background: var(--card);
+        border-color: var(--border);
+        color: var(--text);
+      }
+      main { padding: 16px; }
+      .add-row { display: flex; gap: 10px; margin-bottom: 16px; }
+      input[type="text"] {
+        flex: 1;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #0f1626;
+        color: var(--text);
+        outline: none;
+      }
+      button {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #0f1626;
+        color: var(--text);
+        cursor: pointer;
+      }
+      button.primary { background: linear-gradient(180deg, #5b96ff, #4f8cff); border-color: #416ed6; }
+      button.success { background: linear-gradient(180deg, #35d16f, #22c55e); border-color: #1da34f; }
+      button.ghost { background: #0f1626; }
+      button.danger { background: linear-gradient(180deg, #f66060, #ef4444); border-color: #d13f3f; }
+      .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+      .list { display: grid; gap: 10px; }
+      .item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: center;
+        padding: 12px;
+        background: #0f1626;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+      .item .meta { color: var(--muted); font-size: 12px; }
+      .actions { display: flex; gap: 8px; }
+      .empty { color: var(--muted); text-align: center; padding: 24px; border: 1px dashed var(--border); border-radius: 12px; background: rgba(15,22,38,0.6);}      
+      footer { padding: 14px 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+      a { color: var(--accent); text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <div class="app" role="application">
+      <header>
+        <div class="title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9 11L12 14L22 4" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H16" stroke="#7f8ca3" stroke-width="2" stroke-linecap="round"/></svg>
+          Family To‑Do
+          <span class="badge">Simple shared list</span>
+        </div>
+        <div class="tabs" role="tablist" aria-label="Sections">
+          <div class="tab active" role="tab" aria-selected="true" data-tab="add">Add Items</div>
+          <div class="tab" role="tab" aria-selected="false" data-tab="pending">Pending Items</div>
+          <div class="tab" role="tab" aria-selected="false" data-tab="completed">Completed Items</div>
+        </div>
+      </header>
+
+      <main>
+        <!-- Add Items -->
+        <section id="view-add" class="view">
+          <div class="add-row">
+            <input id="item-input" type="text" placeholder="Add a new item… (e.g., Buy milk)" aria-label="Item text" />
+            <button id="add-btn" class="primary" aria-label="Add item">Add</button>
+          </div>
+          <div class="toolbar">
+            <button id="share-btn" class="ghost" title="Create a share link">Share List</button>
+            <button id="import-btn" class="ghost" title="Import shared list">Import</button>
+            <button id="clear-btn" class="danger" title="Clear everything">Clear All</button>
+          </div>
+        </section>
+
+        <!-- Pending Items -->
+        <section id="view-pending" class="view" hidden>
+          <div id="pending-list" class="list" role="list"></div>
+          <div id="pending-empty" class="empty" hidden>No pending items. Add something in the Add tab.</div>
+        </section>
+
+        <!-- Completed Items -->
+        <section id="view-completed" class="view" hidden>
+          <div id="completed-list" class="list" role="list"></div>
+          <div id="completed-empty" class="empty" hidden>No completed items yet.</div>
+        </section>
+      </main>
+
+      <footer>
+        <div>Data is stored in your browser (local only). Use Share to sync manually.</div>
+        <div>
+          Tips: Use on both phones. Tap Share to copy a link your partner can open to import.
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      // Simple shared list with localStorage persistence and manual share/import
+      // Data model: { id, text, status: 'pending'|'completed', createdAt }
+      const STORAGE_KEY = 'family-shared-list:v1';
+
+      /**
+       * Utilities
+       */
+      const $ = (sel) => document.querySelector(sel);
+      const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+      const now = () => new Date().toISOString();
+      const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return [];
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed)) return [];
+          return parsed;
+        } catch { return []; }
+      }
+      function saveState(items) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      }
+      function getItems() { return loadState(); }
+      function setItems(items) { saveState(items); render(); }
+
+      function addItem(text) {
+        const trimmed = (text || '').trim();
+        if (!trimmed) return;
+        const items = getItems();
+        items.unshift({ id: uid(), text: trimmed, status: 'pending', createdAt: now() });
+        setItems(items);
+        $('#item-input').value = '';
+        switchTab('pending');
+      }
+      function markComplete(id) {
+        const items = getItems().map(it => it.id === id ? { ...it, status: 'completed' } : it);
+        setItems(items);
+      }
+      function markPending(id) {
+        const items = getItems().map(it => it.id === id ? { ...it, status: 'pending' } : it);
+        setItems(items);
+      }
+      function removeItem(id) {
+        const items = getItems().filter(it => it.id !== id);
+        setItems(items);
+      }
+
+      // Rendering
+      function render() {
+        const items = getItems();
+        const pending = items.filter(i => i.status === 'pending');
+        const completed = items.filter(i => i.status === 'completed');
+
+        const pendingList = $('#pending-list');
+        const pendingEmpty = $('#pending-empty');
+        pendingList.innerHTML = '';
+        if (pending.length === 0) {
+          pendingEmpty.hidden = false;
+        } else {
+          pendingEmpty.hidden = true;
+          pending.forEach(item => pendingList.appendChild(renderItem(item, 'pending')));
+        }
+
+        const completedList = $('#completed-list');
+        const completedEmpty = $('#completed-empty');
+        completedList.innerHTML = '';
+        if (completed.length === 0) {
+          completedEmpty.hidden = false;
+        } else {
+          completedEmpty.hidden = true;
+          completed.forEach(item => completedList.appendChild(renderItem(item, 'completed')));
+        }
+      }
+
+      function renderItem(item, listType) {
+        const el = document.createElement('div');
+        el.className = 'item';
+        el.setAttribute('role', 'listitem');
+        const created = new Date(item.createdAt).toLocaleString();
+        el.innerHTML = `
+          <div>
+            <div>${escapeHtml(item.text)}</div>
+            <div class="meta">Added ${created}</div>
+          </div>
+          <div class="actions">
+            ${listType === 'pending' ? '<button class="success" data-action="complete">Mark Complete</button>' : '<button class="ghost" data-action="uncomplete">Move to Pending</button>'}
+            <button class="ghost" data-action="edit">Edit</button>
+            <button class="danger" data-action="delete">Delete</button>
+          </div>
+        `;
+        el.querySelector('[data-action="complete"]')?.addEventListener('click', () => markComplete(item.id));
+        el.querySelector('[data-action="uncomplete"]')?.addEventListener('click', () => markPending(item.id));
+        el.querySelector('[data-action="delete"]')?.addEventListener('click', () => removeItem(item.id));
+        el.querySelector('[data-action="edit"]')?.addEventListener('click', () => editItem(item.id));
+        return el;
+      }
+
+      function editItem(id) {
+        const items = getItems();
+        const idx = items.findIndex(i => i.id === id);
+        if (idx === -1) return;
+        const current = items[idx];
+        const nextText = prompt('Edit item text:', current.text);
+        if (nextText == null) return;
+        const trimmed = nextText.trim();
+        if (!trimmed) return;
+        items[idx] = { ...current, text: trimmed };
+        setItems(items);
+      }
+
+      function escapeHtml(str) {
+        return str
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#039;');
+      }
+
+      // Tabs
+      function switchTab(tab) {
+        $$('.tab').forEach(t => {
+          const active = t.dataset.tab === tab;
+          t.classList.toggle('active', active);
+          t.setAttribute('aria-selected', String(active));
+        });
+        $$('#view-add, #view-pending, #view-completed').forEach(v => v.hidden = true);
+        if (tab === 'add') $('#view-add').hidden = false;
+        if (tab === 'pending') $('#view-pending').hidden = false;
+        if (tab === 'completed') $('#view-completed').hidden = false;
+        render();
+      }
+
+      $$('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+      $('#add-btn').addEventListener('click', () => addItem($('#item-input').value));
+      $('#item-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') addItem($('#item-input').value); });
+
+      // Share / Import / Clear
+      $('#share-btn').addEventListener('click', () => {
+        const data = JSON.stringify(getItems());
+        // Put data in URL hash for easy, private sharing
+        const encoded = btoa(unescape(encodeURIComponent(data)));
+        const url = `${location.origin}${location.pathname}#data=${encoded}`;
+        navigator.clipboard.writeText(url).then(() => {
+          alert('Share link copied! Send it to your partner to import.');
+        }, () => alert('Copy failed. Long-press to select the URL instead: ' + url));
+      });
+
+      $('#import-btn').addEventListener('click', () => {
+        const input = prompt('Paste a share link or exported JSON:');
+        if (!input) return;
+        try {
+          let json;
+          if (input.includes('#data=')) {
+            const encoded = input.split('#data=')[1];
+            json = decodeURIComponent(escape(atob(encoded)));
+          } else {
+            json = input;
+          }
+          const arr = JSON.parse(json);
+          if (!Array.isArray(arr)) throw new Error('Invalid data');
+          // Merge by id, newest wins
+          const current = getItems();
+          const byId = new Map(current.map(i => [i.id, i]));
+          for (const it of arr) byId.set(it.id, it);
+          setItems(Array.from(byId.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+          alert('Imported successfully!');
+        } catch (e) {
+          alert('Import failed. Make sure you pasted a valid link or JSON.');
+        }
+      });
+
+      $('#clear-btn').addEventListener('click', () => {
+        if (confirm('Clear all items?')) { setItems([]); }
+      });
+
+      // Auto-import if URL has data
+      (function autoImportFromHash() {
+        const hash = location.hash;
+        if (!hash.startsWith('#data=')) return render();
+        try {
+          const encoded = hash.slice('#data='.length + 1 - 1); // keep exact behavior
+          const json = decodeURIComponent(escape(atob(encoded)));
+          const arr = JSON.parse(json);
+          if (Array.isArray(arr)) {
+            // Merge instead of replace
+            const current = getItems();
+            const byId = new Map(current.map(i => [i.id, i]));
+            for (const it of arr) byId.set(it.id, it);
+            setItems(Array.from(byId.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+            // Clean the hash
+            history.replaceState({}, document.title, location.pathname + location.search);
+          }
+        } catch {
+          // ignore
+          render();
+        }
+      })();
+
+      // Initial render
+      render();
+    </script>
+  </body>
+  </html>
+
+
