@@ -555,6 +555,8 @@
           if (user) {
             showApp();
             updateUserInfo(user);
+            // Populate category dropdown immediately when user logs in
+            populateCategorySelect();
           } else {
             showLoginPage();
             updateUserInfo(null);
@@ -563,6 +565,7 @@
       } else {
         // No auth in local mode
         showApp();
+        populateCategorySelect();
       }
 
       // Login form handler
@@ -1014,6 +1017,9 @@
           }
           
           // User has access, load the data
+          // First, populate with defaults immediately
+          populateCategorySelect();
+          
           onValue(ref(db, `lists/${LIST_ID}/categories`), (snap) => {
             const cats = snap.val();
             if (Array.isArray(cats)) {
