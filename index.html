@@ -873,17 +873,28 @@
       document.getElementById('close-modal-btn').addEventListener('click', () => {
         document.getElementById('share-modal').style.display = 'none';
       });
-      document.getElementById('add-user-btn').addEventListener('click', addSharedUser);
+      document.getElementById('add-user-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Add user button clicked');
+        addSharedUser();
+      });
 
       // Share functionality
       function addSharedUser() {
+        console.log('addSharedUser called');
         const email = document.getElementById('share-email').value.trim();
-        if (!email) return;
+        console.log('Email:', email);
+        if (!email) {
+          console.log('No email provided');
+          return;
+        }
         
         if (!hasFirebaseConfig) {
           alert('Firebase not configured for sharing.');
           return;
         }
+        
+        console.log('Adding user to Firebase...');
 
         // Add user to shared list
         const sharedUsersRef = ref(db, `lists/${LIST_ID}/sharedUsers`);
@@ -895,10 +906,17 @@
             addedAt: now()
           };
           set(sharedUsersRef, sharedUsers).then(() => {
+            console.log('User added successfully');
             document.getElementById('share-email').value = '';
             loadSharedUsers();
             alert(`Invitation sent to ${email}`);
+          }).catch((error) => {
+            console.error('Error adding user:', error);
+            alert('Error adding user. Please try again.');
           });
+        }).catch((error) => {
+          console.error('Error getting shared users:', error);
+          alert('Error accessing shared users. Please try again.');
         });
       }
 
