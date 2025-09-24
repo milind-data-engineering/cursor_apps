@@ -146,4 +146,4 @@ open http://localhost:8000/shared-list/
 
 ## License
 
-Private use only. Do not distribute without permission.
+Private use only. Do not distribute without permission..
