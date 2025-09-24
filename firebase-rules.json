@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "lists": {
+      "$listId": {
+        ".read": "auth != null && (data.child('sharedUsers').hasChild(auth.token.email) || !data.child('sharedUsers').exists())",
+        ".write": "auth != null && (data.child('sharedUsers').hasChild(auth.token.email) || !data.child('sharedUsers').exists())",
+        "sharedUsers": {
+          ".read": "auth != null && (data.hasChild(auth.token.email) || !data.exists())",
+          ".write": "auth != null && (data.hasChild(auth.token.email) || !data.exists())"
+        }
+      }
+    }
+  }
+}

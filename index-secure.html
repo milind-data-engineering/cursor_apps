@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Family To-Do List</title>
+    <style>
+      /* Same styles as before - keeping it concise */
+      :root {
+        --bg: #0b1220;
+        --card: #121a2b;
+        --muted: #7f8ca3;
+        --text: #e9eef7;
+        --accent: #4f8cff;
+        --accent-2: #22c55e;
+        --danger: #ef4444;
+        --border: #1e2a44;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: radial-gradient(1200px 800px at 20% -10%, #1b2a48 0%, #0b1220 50%, #0b1220 100%);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .app {
+        width: 100%;
+        max-width: 760px;
+        background: rgba(18,26,43,0.8);
+        backdrop-filter: blur(8px);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        overflow: hidden;
+      }
+      .error-message {
+        background: var(--danger);
+        color: white;
+        padding: 16px;
+        border-radius: 8px;
+        margin: 16px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app" role="application">
+      <div id="error-container" style="display: none;">
+        <div class="error-message">
+          <h3>Configuration Error</h3>
+          <p>Firebase configuration is missing. Please contact the administrator.</p>
+        </div>
+      </div>
+      
+      <div id="app-content" style="display: none;">
+        <!-- Your existing app content goes here -->
+        <h1>Family To-Do List</h1>
+        <p>App content will be loaded here...</p>
+      </div>
+    </div>
+
+    <script type="module">
+      // Secure Firebase configuration using environment variables
+      const firebaseConfig = {
+        apiKey: process.env.FIREBASE_API_KEY || window.FIREBASE_API_KEY,
+        authDomain: process.env.FIREBASE_AUTH_DOMAIN || window.FIREBASE_AUTH_DOMAIN,
+        databaseURL: process.env.FIREBASE_DATABASE_URL || window.FIREBASE_DATABASE_URL,
+        projectId: process.env.FIREBASE_PROJECT_ID || window.FIREBASE_PROJECT_ID,
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET || window.FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || window.FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.FIREBASE_APP_ID || window.FIREBASE_APP_ID
+      };
+
+      // Check if config is complete
+      const hasValidConfig = Object.values(firebaseConfig).every(v => v && v.trim() !== '');
+      
+      if (!hasValidConfig) {
+        document.getElementById('error-container').style.display = 'block';
+        document.getElementById('app-content').style.display = 'none';
+      } else {
+        document.getElementById('error-container').style.display = 'none';
+        document.getElementById('app-content').style.display = 'block';
+        // Initialize your app here
+        console.log('Firebase config loaded successfully');
+      }
+    </script>
+  </body>
+</html>

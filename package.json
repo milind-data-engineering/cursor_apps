@@ -1,0 +1,13 @@
+{
+  "name": "family-todo-list",
+  "version": "1.0.0",
+  "description": "A secure family to-do list with real-time sync",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'No build needed'",
+    "start": "echo 'Static site'"
+  },
+  "keywords": ["todo", "family", "realtime", "firebase"],
+  "author": "Your Name",
+  "license": "Private"
+}
