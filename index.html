@@ -895,28 +895,42 @@
         }
         
         console.log('Adding user to Firebase...');
+        console.log('Database:', db);
+        console.log('LIST_ID:', LIST_ID);
+        console.log('Current user:', currentUser);
 
-        // Add user to shared list
-        const sharedUsersRef = ref(db, `lists/${LIST_ID}/sharedUsers`);
-        get(sharedUsersRef).then((snapshot) => {
-          const sharedUsers = snapshot.val() || {};
-          sharedUsers[email] = {
-            email: email,
-            addedBy: currentUser.email,
-            addedAt: now()
-          };
-          set(sharedUsersRef, sharedUsers).then(() => {
-            console.log('User added successfully');
-            document.getElementById('share-email').value = '';
-            loadSharedUsers();
-            alert(`Invitation sent to ${email}`);
+        // Test if we can write to the database at all
+        const testRef = ref(db, `lists/${LIST_ID}/test`);
+        set(testRef, { test: true }).then(() => {
+          console.log('Test write successful');
+          // Now try to get shared users
+          const sharedUsersRef = ref(db, `lists/${LIST_ID}/sharedUsers`);
+          console.log('Shared users ref:', sharedUsersRef);
+          
+          get(sharedUsersRef).then((snapshot) => {
+            console.log('Snapshot received:', snapshot);
+            const sharedUsers = snapshot.val() || {};
+            sharedUsers[email] = {
+              email: email,
+              addedBy: currentUser.email,
+              addedAt: now()
+            };
+            set(sharedUsersRef, sharedUsers).then(() => {
+              console.log('User added successfully');
+              document.getElementById('share-email').value = '';
+              loadSharedUsers();
+              alert(`Invitation sent to ${email}`);
+            }).catch((error) => {
+              console.error('Error adding user:', error);
+              alert('Error adding user. Please try again.');
+            });
           }).catch((error) => {
-            console.error('Error adding user:', error);
-            alert('Error adding user. Please try again.');
+            console.error('Error getting shared users:', error);
+            alert('Error accessing shared users. Please try again.');
           });
         }).catch((error) => {
-          console.error('Error getting shared users:', error);
-          alert('Error accessing shared users. Please try again.');
+          console.error('Error with test write:', error);
+          alert('Error accessing database. Please try again.');
         });
       }
 

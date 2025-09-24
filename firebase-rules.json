@@ -2,11 +2,11 @@
   "rules": {
     "lists": {
       "$listId": {
-        ".read": "auth != null && (data.child('sharedUsers').hasChild(auth.token.email) || !data.child('sharedUsers').exists())",
-        ".write": "auth != null && (data.child('sharedUsers').hasChild(auth.token.email) || !data.child('sharedUsers').exists())",
+        ".read": "auth != null",
+        ".write": "auth != null",
         "sharedUsers": {
-          ".read": "auth != null && (data.hasChild(auth.token.email) || !data.exists())",
-          ".write": "auth != null && (data.hasChild(auth.token.email) || !data.exists())"
+          ".read": "auth != null",
+          ".write": "auth != null"
         }
       }
     }
