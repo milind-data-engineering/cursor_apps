@@ -670,7 +670,12 @@
       }
       function populateCategorySelect() {
         const select = $('#category-select');
+        if (!select) {
+          console.log('Category select element not found');
+          return;
+        }
         const cats = ensureDefaultCategories();
+        console.log('Populating categories:', cats);
         select.innerHTML = '';
         for (const c of cats) {
           const opt = document.createElement('option');
@@ -1043,6 +1048,11 @@
       
       // Always populate category dropdown regardless of Firebase state
       populateCategorySelect();
+      
+      // Also populate when DOM is fully loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        populateCategorySelect();
+      });
     </script>
   </body>
   </html>
