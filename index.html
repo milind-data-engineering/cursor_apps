@@ -493,6 +493,9 @@
       </div>
     </div>
 
+    <!-- EmailJS for sending emails -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
     <script type="module">
       import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
       import { getDatabase, ref, onValue, set, update, get, child } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
@@ -919,6 +922,9 @@
           console.log('User added successfully');
           document.getElementById('share-email').value = '';
           loadSharedUsers();
+          
+          // Send email invitation
+          sendInvitationEmail(email, currentUser.email);
           alert(`Invitation sent to ${email}`);
         }).catch((error) => {
           console.error('Error adding user:', error);
@@ -959,6 +965,36 @@
 
       // Make removeSharedUser globally available
       window.removeSharedUser = removeSharedUser;
+
+      // Email sending functionality
+      function sendInvitationEmail(recipientEmail, senderEmail) {
+        // For now, we'll use a simple approach - create a shareable link
+        const shareUrl = `${window.location.origin}${window.location.pathname}#list=${LIST_ID}`;
+        
+        // Create email content
+        const emailSubject = `You've been invited to a Family To-Do List`;
+        const emailBody = `
+Hello!
+
+${senderEmail} has invited you to collaborate on a Family To-Do List.
+
+To access the list, click this link: ${shareUrl}
+
+You'll need to sign in with your Google account to view and edit the list.
+
+Best regards,
+Family To-Do List App
+        `;
+        
+        // Create a mailto link (this will open the user's email client)
+        const mailtoLink = `mailto:${recipientEmail}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+        
+        // Open the email client
+        window.open(mailtoLink);
+        
+        console.log('Email invitation prepared for:', recipientEmail);
+        console.log('Share URL:', shareUrl);
+      }
 
       $('#import-btn').addEventListener('click', () => {
         const input = prompt('Paste a share link or exported JSON:');
