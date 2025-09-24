@@ -671,11 +671,9 @@
       function populateCategorySelect() {
         const select = $('#category-select');
         if (!select) {
-          console.log('Category select element not found');
           return;
         }
         const cats = ensureDefaultCategories();
-        console.log('Populating categories:', cats);
         select.innerHTML = '';
         for (const c of cats) {
           const opt = document.createElement('option');
